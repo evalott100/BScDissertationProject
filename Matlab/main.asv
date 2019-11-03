@@ -1,13 +1,20 @@
 clc
-projfunctions
+clear
+
 
 % https://uk.mathworks.com/help/symbolic/solve-a-system-of-differential-equations.html
 syms x(t) y(t)
 L = [1 2; -1 1];
 w = [x; y];
-system = [L, w]
-odeSystem = diff(system(2)) == system(1)*system(2);
-dsolve(odeSystem);
+odeSystem = diff(w) == L*w;
+sols = dsolve(odeSystem);
+[sols.x, sols.y]
 
 
-expm(L*t)
+% Our solution with matrix exponential
+syms C1 C2
+expform = simplify(rewrite(expm(L*t), 'sincos'))*[C1;C2];
+[expform(1), expform(2)]
+
+for i = 2:99
+    

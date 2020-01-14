@@ -15,17 +15,71 @@
 	Approximates function d/dx = Ax = (B + C)x using strang splitting
 	delt    timestep
 	B, C    matrices generated from split
-	T       Time to compute the approximated function at
+	T1       Time to compute the approximated function at
 %}
-function ret = lieTrotter (delt, T, B, C)
-	while 
+
+clc
+clear
+
+
+syms x(t) y(t)
+A = [1 2; -1 1];
+X = [x; y];
+odeSystem = diff(X) == A*X;
+ini = X(0) == [2; -1];
+sols = dsolve(odeSystem,ini);
+
+A = [1 2; -1 1];
+C = [0 2; 0 1];
+B = [1 0; -1 0];
+X = [x; y];
+ini =  [2; -1];
+delt = 0.2;
+T1 = 100;
+
+ltAp = lieTrotter(delt, T1, B, C, ini);
+
+clf
+fplot(sols.x,'b')
+hold on
+fplot(sols.y,'r')
+n=2
+while T1 > (n)*delt
+	hold on
+	var = ltAp(:,n)
+	plot((n)*delt,var(1),'ob')
+	hold on
+	plot((n)*delt,var(2),'or')
+	n = n+1;
+end
+
+grid on
+set(figure(1),'position',[0,0,T1,1000*10])
+ha = gca;
+ha.XAxisLocation = 'origin';
+ha.YAxisLocation = 'origin';
+xlabel('t')
+
+function ret = lieTrotter (delt, T1, B, C, ini)
+	n = 1;
+	x_ini(:,n+1) = ini;
+
+	while T1 > (n + 2)*delt
+		x(:,n+1) = x_ini(:,n+1);
+		x(:,n+2) = expm(B*delt)*x(:,n+1);
+		y(:,n+1) = x(:,n+2);
+		y(:,n+2) = expm(C*delt)*y(:,n+1);
+		x_ini(:,n+2) = y(:,n+2);
+		n = n+1;
+	end
+	ret = x;
 end
 
 %{
 	Approximates function d/dx = Ax = (B + C)x using strang splitting
 	delt    timestep
 	B, C    matrices generated from split
-	T       Time to compute the approximated function at
+	T1       Time to compute the approximated function at
 %}
-function ret = strang (delt, T, B, C)
+function ret = strang (delt, T1, B, C)
 end

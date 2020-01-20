@@ -13,8 +13,9 @@ clf
 clc
 clear
 
-plotExample(0.1,'st')
+%plotExample(0.05,'st')
 %plotExample(0.5,'lt')
+plotCommutativeExample(0.1)
 
 %{
 	Approximates function dx/dt = Ax = (B + C)x using Lie-Trotter splitting
@@ -94,6 +95,45 @@ function plotExample (delt, method)
 		approx = strang(delt, B, C, ini, T0, T1);
 		title('Strang approximation')
 	end
+	
+	fplot(sols.x,'b')
+	hold on
+	fplot(sols.y,'r')
+	xlabel('t')
+
+	n = 0;
+	domain = (T1 - T0)/delt;
+	while domain >= n*delt
+		hold on
+		var = approx(:,n+1);
+		plot(n*delt,var(1),'ob')
+		hold on
+		plot(n*delt,var(2),'or')
+		n = n+1;
+	end
+
+	grid on
+	xlim([T0-2 T1])
+	ylim([-250, 250])
+end
+
+function plotCommutativeExample (delt)
+	syms x(t) y(t)
+	A = [1 2; -1 1];
+	X = [x; y];
+	odeSystem = diff(X) == A*X;
+	ini = X(0) == [2; -1];
+	sols = dsolve(odeSystem,ini);
+
+	A = [1 2; -1 1];
+	C = [1 0; 0 1];
+	B = [0 2; -1 0];
+	X = [x; y];
+	ini =  [2; -1];
+	T0 = 0;
+	T1 = 10;
+
+	approx = lieTrotter(delt, B, C, ini, T0, T1);
 	
 	fplot(sols.x,'b')
 	hold on

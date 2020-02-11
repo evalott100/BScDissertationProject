@@ -9,23 +9,24 @@
 	Aprroximate splitted Schrodinger equation with Fourier and ODE
 	solutions
 %}
-clc; clear;
-syms V(t) U0(x)
+clf; clc; clear;
+syms V(t) u0(x)
 
 
-% Choose epsilon between 10^-3 and 10^-2
-eps = 10^(-2.5);
+
+% Choose vEpsilon between 10^-3 and 10^-2
+vEps = 10^(-2.5);
 
 % Time Grid size
-tM = 100;
+tM = 500;
 % Time domain
 t0 = 0;
-t1 = 1;
+t1 = 0.8;
 % Timestep
 tH = (t1 - t0)/tM;
 
 % Space Grid size
-xM = 100;
+xM = 500;
 % Space domain
 x0 = 0;
 x1 = 1;
@@ -33,56 +34,65 @@ x1 = 1;
 xH = (x1 - x0)/xM;
 
 % The potential in use is specific to the problem
-V(x) = (x^2)/2;
+V(x) = 10;
 
 %initial value of u(x,T0), i.e the first U*
-u0(x) = exp(-25*(x - 0.5)^2)*exp(1i*(1+x)/eps);
+u0(x) = exp(-25*((x-0.5)^2))*exp(1i*(-1/5)*log(exp(5*(x - 0.5))+exp(-5*(x - 0.5)))/vEps);
 
 
-u = Strang(eps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0);
-posDensity = PositionDensity(u)
-vec = PlotAtConstantTime(50,posDensity,xM,xH)
-PlotEntireDomain(posDensity)
+u = Strang(vEps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0);
+%posDensity = PositionDensity(u)
+%PlotAtConstantTime(135,posDensity,xM,xH,tH);
+%PlotEntireDomain(posDensity);
 
 %{
 	Approximates a Schrodinger equation using strang
 %}
-function ret = Strang (eps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0)
+function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0)
 	% populate solution space
 	u = zeros(xM,tM);
-	for j = 0 : xM-1
-		u(j+1,1) = u0(x0 + j*xH);
+	x = zeros(xM);
+
+	for j = 1 : xM
+		x(j) = x0 + (j-1)*xH;
+		u(j,1) = u0(x(j));
 	end
 	
 	% For each timestep (column of U)
-	for tIter = 0 : xM-1
-		tIter
-		uSt = zeros(xM);
-		% For each space step (column of U)
-		for sIter = 0 : xM-1
-			sIter
-			% Solve the ODE section of the split
-			uSt(sIter+1) = exp(-1i*V(x0 + (sIter+1)*xH)*tH/(2*eps))*u(tIter+1,sIter+1);
-			
-			% Solve the fourier part of the split
+	for n = 1 : tM-1
+		uSt1 = zeros(xM);
+		uSt2 = zeros(xM);
+		% Solve the ODE section of the split
+		for j = 1 : xM
+			uSt1(j) = exp(-1i*V(x(j))*tH/(2*vEps))*u(j,n);
+		end
+		
+		% Solve the fourier part of the split
+		for j = 1 : xM			
 			sumval = 0;
 			for l = -xM/2 : (xM/2 - 1)
+				% mu_l value
 				mul = (2*pi*l)/(x1 - x0);
 				
 				% Calculate fourier coeffiec using ODE init cond
 				uStFourier = 0;
-				for j = 0 : xM - 1
-					uStFourier = uStFourier + uSt(j+1)*exp(-1i*mul*(j+1)*xH);
+				for j2 = 1 : xM
+					uStFourier = uStFourier + uSt1(j2)*exp(-1i*mul*(x(j2) - x0));
 				end
 				
-				sumval = sumval + exp(-1i*eps*tH*(mul^2)/2) * uStFourier * exp(1i*mul*((sIter+1)*xH));
+				sumval = sumval + exp(-1i*vEps*tH*(mul^2)/2) * uStFourier * exp(1i*mul*(x(j) - x0));
 			end
 			% New Ust from the fourier solution
-			uSt(sIter+1) = (1/xM)*sumval;
-			u(tIter+1, sIter+1) = exp(-1i*V(sIter+1)*tH/(2*eps))*uSt(sIter+1);
-		end			
-	end
-	ret = u
+			uSt2(j) = (1/xM)*sumval;
+		end
+		
+		% Solution for the next timestep
+		for j = 1 : xM
+			[j,xM,n+1,tM]
+			u(j, n+1) = exp(-1i*V(x(j))*tH/(2*vEps))*uSt2(j);
+		end
+	end		
+	ret = u;
 end
 
 %{
@@ -100,23 +110,29 @@ function ret = PositionDensity(u)
 
 end
 
-function ret = PlotAtConstantTime (timepoint, u, xM, xH)
-
+function ret = PlotAtConstantTime (timepoint, u, xM, xH, tH)
+	t = timepoint*tH
+	figure(1);
 	vec = u(:,timepoint);
 	
 	xlabel('x')
 
 	for n = 0 : xM - 1
 		hold on
-		plot(xH*(n+1),vec(n+1),'ob')
+		xlabel('x')
+		ylabel('y')
+		
+		plot(xH*(n),vec(n+1),'ob')
+		
 	end
 
 	grid on
-	ret = vec
 end
 
 function ret = PlotEntireDomain (u,tH,xH)
+	figure(2);
 	surf(u)
+	%view(2)
 end
 
 

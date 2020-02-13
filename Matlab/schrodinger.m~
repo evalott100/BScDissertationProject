@@ -5,27 +5,29 @@
 	semiclassical reigime'
 	
 	03/02/20
-	schrodinger_fourier.m
-	Aprroximate splitted Schrodinger equation with slow Fourier and ODE
+	schrodinger.m
+	Aprroximate splitted Schrodinger equation with Fourier and ODE
 	solutions
 %}
-clf; clc; clear;
+clf; clc; %clear;
 syms V(t) u0(x)
 
-% TODO: Make space step proportional to eps
+
+% Make space step proportional to eps
+
 % Choose vEpsilon between 10^-3 and 10^-2
-vEps = 10^-3;
+vEps = 10^(-2.5);
 
 % Time Grid size
-tM = 500;
+tM = 200;
 % Time domain
 t0 = 0;
-t1 = 1;
+t1 = 0.8;
 % Timestep
 tH = (t1 - t0)/tM;
 
 % Space Grid size
-xM = 500;
+xM = 200;
 % Space domain
 x0 = 0;
 x1 = 1;
@@ -37,33 +39,28 @@ V(x) = 10;
 
 % Evaluate the potential at each space step
 Vx = zeros(xM);
-for j = 1 : xM
-	Vx(j) = V(x0 + (j-1)*xH);
-end
+Vx(
 
 %initial value of u(x,T0), i.e the first U*
 u0(x) = exp(-25*((x-0.5)^2))*exp(1i*(-1/5)*log(exp(5*(x - 0.5))+exp(-5*(x - 0.5)))/vEps);
-U0 = zeros(xM);
-for j = 1 : xM
-	U0(j) = u0(x0 + (j-1)*xH);
-end
 
-u = Strang(vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0);
-%posDensity = PositionDensity(u);
-%PlotAtConstantTime(204,posDensity,xM,xH,tH);
-%PlotEntireDomain(posDensity);
+
+%u = Strang(vEps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0);
+posDensity = PositionDensity(u);
+PlotAtConstantTime(135,posDensity,xM,xH,tH);
+PlotEntireDomain(posDensity);
 
 %{
 	Approximates a Schrodinger equation using strang
 %}
-function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0)
-	% Populate solution space
+function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, V, u0)
+	% populate solution space
 	u = zeros(xM,tM);
 	x = zeros(xM);
 
-	% Solution in discretised space for the first timestep t = t0
 	for j = 1 : xM
-		u(j,1) = U0(j);
+		x(j) = x0 + (j-1)*xH;
+		u(j,1) = u0(x(j));
 	end
 	
 	% For each timestep (column of U)
@@ -72,7 +69,7 @@ function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0)
 		uSt2 = zeros(xM);
 		% Solve the ODE section of the split
 		for j = 1 : xM
-			uSt1(j) = exp(-1i*Vx(j)*tH/(2*vEps))*u(j,n);
+			uSt1(j) = exp(-1i*V(x(j))*tH/(2*vEps))*u(j,n);
 		end
 		
 		% Solve the fourier part of the split
@@ -85,10 +82,10 @@ function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0)
 				% Calculate fourier coeffiec using ODE init cond
 				uStFourier = 0;
 				for j2 = 1 : xM
-					uStFourier = uStFourier + uSt1(j2)*exp(-1i*mul*((j2-1)*xH));
+					uStFourier = uStFourier + uSt1(j2)*exp(-1i*mul*(x(j2) - x0));
 				end
 				
-				sumval = sumval + exp(-1i*vEps*tH*(mul^2)/2) * uStFourier * exp(1i*mul*((j-1)*xH));
+				sumval = sumval + exp(-1i*vEps*tH*(mul^2)/2) * uStFourier * exp(1i*mul*(x(j) - x0));
 			end
 			% New Ust from the fourier solution
 			uSt2(j) = (1/xM)*sumval;
@@ -97,7 +94,7 @@ function ret = Strang (vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0)
 		% Solution for the next timestep
 		for j = 1 : xM
 			[j,xM,n+1,tM]
-			u(j, n+1) = exp(-1i*Vx(j)*tH/(2*vEps))*uSt2(j);
+			u(j, n+1) = exp(-1i*V(x(j))*tH/(2*vEps))*uSt2(j);
 		end
 	end		
 	ret = u;
@@ -142,3 +139,38 @@ function ret = PlotEntireDomain (u,tH,xH)
 	surf(u)
 	%view(2)
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -13,8 +13,8 @@ clf
 clc
 clear
 
-%plotExample(0.05,'st')
-%plotExample(0.5,'lt')
+plotExample(0.05,'st')
+plotExample(0.5,'lt')
 plotCommutativeExample(0.1)
 
 %{

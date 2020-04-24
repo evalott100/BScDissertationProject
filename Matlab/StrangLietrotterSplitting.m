@@ -5,7 +5,6 @@
 	semiclassical'
 	
 	12/01/20
-	strang_lietrotter_splitting.m
 	Functions to demonstrate and compute Lie-Trotter and Strang splitting
 	schemes
 %}
@@ -13,9 +12,9 @@ clf
 clc
 clear
 
-plotExample(0.05,'st')
-plotExample(0.5,'lt')
-plotCommutativeExample(0.1)
+%plotExample(0.1,'st')
+%plotExample(0.5,'lt')
+plotCommutativeExample(1)
 
 %{
 	Approximates function dx/dt = Ax = (B + C)x using Lie-Trotter splitting
@@ -80,9 +79,13 @@ function plotExample (delt, method)
 	ini = X(0) == [2; -1];
 	sols = dsolve(odeSystem,ini);
 
+	
+	
 	A = [1 2; -1 1];
 	C = [0 2; 0 1];
 	B = [1 0; -1 0];
+	expm(A*delt) - expm(B*delt)*expm(C*delt)
+	
 	X = [x; y];
 	ini =  [2; -1];
 	T0 = 0;
@@ -132,6 +135,8 @@ function plotCommutativeExample (delt)
 	ini =  [2; -1];
 	T0 = 0;
 	T1 = 10;
+	expm(A*delt) - expm(B*delt)*expm(C*delt)
+
 
 	approx = lieTrotter(delt, B, C, ini, T0, T1);
 	

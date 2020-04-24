@@ -4,8 +4,7 @@
 	'Time splitting spectral methods for Schrodinger equations in the
 	semiclassical reigime'
 	
-	03/02/20
-	schrodinger.m
+	18/04/20
 	Aprroximate splitted Schrodinger equation with slow Fourier and ODE
 	solutions
 %}
@@ -25,7 +24,7 @@ t1 = 1;
 tH = (t1 - t0)/tM;
 
 % Space Grid size
-xM =500;
+xM =100;
 % Space domain
 x0 = 0;
 x1 = 1;
@@ -34,8 +33,8 @@ xH = (x1 - x0)/xM;
 
 % The potential in use is specific to the problem
 syms V(x)
-V(x) = 10;
-
+V(x) = (x^2)/2;
+%V(x) = 10
 % Evaluate the potential at each space step
 Vx = zeros(xM);
 for j = 1 : xM
@@ -44,19 +43,20 @@ end
 
 %initial value of u(x,T0), i.e the first U*
 syms u0(x)
-u0(x) = exp(-25*((x-0.5)^2))*exp(1i*(-1/5)*log(exp(5*(x - 0.5))+exp(-5*(x - 0.5)))/vEps);
+u0(x) = exp(-25*(x - 1/2)^2)*exp(1i/vEps * (1 + x));
+%u0(x) = exp(-25*((x-0.5)^2))*exp(1i*(-1/5)*log(exp(5*(x - 0.5))+exp(-5*(x - 0.5)))/vEps);
 U0 = zeros(xM);
 for j = 1 : xM
 	U0(j) = u0(x0 + (j-1)*xH);
 end
 
 
-%u = Strang(vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0);
+u = Strang(vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0);
 %u = LieTrotter(vEps, tM, t0, t1, tH, xM, x0, x1, xH, Vx, U0);
-%posDensity = PositionDensity(u);
-currDensity = CurrentDensity(u,xH, vEps);
-%PlotAtConstantTime(27,posDensity,xM,xH,tH);
-PlotAtConstantTime(270,currDensity,xM,xH,tH);
+posDensity = PositionDensity(u);
+%currDensity = CurrentDensity(u,xH, vEps);
+PlotAtConstantTime(270,posDensity,xM,xH,tH);
+%PlotAtConstantTime(270,currDensity,xM,xH,tH);
 %PlotEntireDomain(posDensity);
 %PlotEntireDomain(currDensity);
 
@@ -180,18 +180,18 @@ function ret = CurrentDensity(u, xH, vEps)
 	currDens = zeros(xM, tM);
 	
 	
-	%{		
+	%{
 	% approximate the derivative of u every point
 	for n = 1 :  tM
 		for j = 2 : xM - 1
-			derivu = (u(j+1,n) - u(j-1,n))/xH;
+			derivu = (u(j+1,n) - u(j-1,n))/(2*xH);
 	
 			% calculate the current density at each point
 			currDens(j,n) = vEps*imag(conj(u(j,n))*derivu);
 		end
 	end
-	%}
 	
+	%}
 	% For each timestep we calculate spatial dft, and differentiate idft
 	for n = 1 : tM
 		uFourier = zeros(1,xM);
@@ -209,7 +209,7 @@ function ret = CurrentDensity(u, xH, vEps)
 			end
 			%I arbitrarily comment out the 1/xM factor
 			%Weirdly, this gives results that look similar to Crank-Nicholson
-			%Du = 1/xM * Du
+			%Du = (1/xM) * Du;
 			currDens(j,n) = vEps*imag(conj(u(j,n))*Du);
 		end
 	end
@@ -224,14 +224,15 @@ function ret = PlotAtConstantTime (timepoint, u, xM, xH, tH)
 	figure(1);
 	vec = u(:,timepoint);
 	
-	for n = 0 : xM - 1
+	for n = 1 : xM - 2
+	%for n = 0 : xM - 1
 		hold on
 		plot(xH*(n),vec(n+1),'or')
 		
 	end
 	ylim([-2,2])
 	xlabel('x')
-	ylabel('current density')
+	ylabel('position density')
 	grid on
 end
 
@@ -244,7 +245,7 @@ function ret = PlotEntireDomain (u,tH,xH)
 	surf(u)
 	xlabel('timestep n  : (t_n = t_0 + n \times tH)')
 	ylabel('spacestep m  : (x_m = x_0 + m \times xH)')
-	zlabel('position density')
+	zlabel('current density')
 	
 	%view(2)
 end

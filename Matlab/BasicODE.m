@@ -5,7 +5,6 @@
 	semiclassical'
 	
 	12/01/20
-	basicODE.m
 	Simple solver for a caucy problem along with a plotter, taken from:
 	https://uk.mathworks.com/help/symbolic/solve-a-system-of-differential-equations.html
 %}

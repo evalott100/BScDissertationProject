@@ -24,7 +24,7 @@ t1 = 1;
 tH = (t1 - t0)/tM;
 
 % Space Grid size
-xM =100;
+xM =500;
 % Space domain
 x0 = 0;
 x1 = 1;
@@ -34,7 +34,7 @@ xH = (x1 - x0)/xM;
 % The potential in use is specific to the problem
 syms V(x)
 V(x) = (x^2)/2;
-%V(x) = 10
+%V(x) = 100;
 % Evaluate the potential at each space step
 Vx = zeros(xM);
 for j = 1 : xM
@@ -44,6 +44,7 @@ end
 %initial value of u(x,T0), i.e the first U*
 syms u0(x)
 u0(x) = exp(-25*(x - 1/2)^2)*exp(1i/vEps * (1 + x));
+%u0(x) = exp(-25*(x - 0.5)^2)*exp((1i/vEps)*0.2*(x^2 - x));
 %u0(x) = exp(-25*((x-0.5)^2))*exp(1i*(-1/5)*log(exp(5*(x - 0.5))+exp(-5*(x - 0.5)))/vEps);
 U0 = zeros(xM);
 for j = 1 : xM
@@ -225,7 +226,6 @@ function ret = PlotAtConstantTime (timepoint, u, xM, xH, tH)
 	vec = u(:,timepoint);
 	
 	for n = 1 : xM - 2
-	%for n = 0 : xM - 1
 		hold on
 		plot(xH*(n),vec(n+1),'or')
 		

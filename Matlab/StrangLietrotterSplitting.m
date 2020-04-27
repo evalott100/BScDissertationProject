@@ -8,13 +8,11 @@
 	Functions to demonstrate and compute Lie-Trotter and Strang splitting
 	schemes
 %}
-clf
-clc
-clear
+clf; clc; clear
 
-%plotExample(0.1,'st')
-%plotExample(0.5,'lt')
-plotCommutativeExample(1)
+%PlotExample(0.1,'st')
+%PlotExample(0.5,'lt')
+PlotCommutativeExample(1)
 
 %{
 	Approximates function dx/dt = Ax = (B + C)x using Lie-Trotter splitting
@@ -24,12 +22,12 @@ plotCommutativeExample(1)
 	T0      start point in the domain
 	T1      end point in the domain
 %}
-function ret = lieTrotter (delt, B, C, ini, T0, T1)
+function ret = LieTrotter (delt, B, C, ini, T0, T1)
 	n = 0;
 	x_ini(:,1) = ini;
 	
 	domain = (T1 - T0)/delt;
-	while domain >= n*delt
+	while domain >= T0 + n*delt
 		x(:,n+1) = x_ini(:,n+1);
 		x(:,n+2) = expm(B*delt)*x(:,n+1);
 		y(:,n+1) = x(:,n+2);
@@ -48,12 +46,12 @@ end
 	T0      start point in the domain
 	T1      end point in the domain
 %}
-function ret = strang (delt, B, C, ini, T0, T1)
+function ret = Strang (delt, B, C, ini, T0, T1)
 	n = 0;
 	x_ini(:,1) = ini;
 	
 	domain = (T1 - T0)/delt;
-	while domain >= n*delt
+	while domain >= T0 + n*delt
 		x(:,n+1) = x_ini(:,n+1);
 		x(:,n+2) = expm(0.5*B*delt)*x(:,n+1);
 		
@@ -71,7 +69,7 @@ end
 %{
 	Plots lie trotter example with given timestep for approximation
 %}
-function plotExample (delt, method)
+function PlotExample (delt, method)
 	syms x(t) y(t)
 	A = [1 2; -1 1];
 	X = [x; y];
@@ -92,10 +90,10 @@ function plotExample (delt, method)
 	T1 = 10;
 
 	if strcmp(method,'lt')
-		approx = lieTrotter(delt, B, C, ini, T0, T1);
+		approx = LieTrotter(delt, B, C, ini, T0, T1);
 		title('Lie-Trotter approximation')
 	elseif strcmp(method,'st')
-		approx = strang(delt, B, C, ini, T0, T1);
+		approx = Strang(delt, B, C, ini, T0, T1);
 		title('Strang approximation')
 	end
 	
@@ -120,7 +118,7 @@ function plotExample (delt, method)
 	ylim([-250, 250])
 end
 
-function plotCommutativeExample (delt)
+function PlotCommutativeExample (delt)
 	syms x(t) y(t)
 	A = [1 2; -1 1];
 	X = [x; y];
@@ -135,10 +133,12 @@ function plotCommutativeExample (delt)
 	ini =  [2; -1];
 	T0 = 0;
 	T1 = 10;
+	
+	% Print local error
 	expm(A*delt) - expm(B*delt)*expm(C*delt)
 
 
-	approx = lieTrotter(delt, B, C, ini, T0, T1);
+	approx = LieTrotter(delt, B, C, ini, T0, T1);
 	
 	fplot(sols.x,'b')
 	hold on
